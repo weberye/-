@@ -1,0 +1,1183 @@
+<title>行銷管理課程前測問卷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+/* ───────────────────────────────────────────────
+   Design tokens — Apple Human Interface Guidelines
+   系統色、分隔線、材質模糊皆取自 iOS 17 規範值
+   ─────────────────────────────────────────────── */
+:root{
+  color-scheme: light;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", "Roboto Mono", Menlo, monospace;
+
+  --ground:#F2F2F7;
+  --surface:#FFFFFF;
+  --ink:#1D1D1F;
+  --ink-2:#6E6E73;
+  --ink-3:#8E8E93;
+  --sep:rgba(60,60,67,.16);
+  --fill:rgba(118,118,128,.12);
+  --fill-2:rgba(118,118,128,.06);
+  --thumb:#FFFFFF;
+  --thumb-shadow:0 3px 8px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04);
+  --bar:rgba(242,242,247,.82);
+  --accent:#007AFF;
+  --accent-soft:rgba(0,122,255,.12);
+  --on-accent:#FFFFFF;
+  --warn:#FF9500;
+  --danger:#FF3B30;
+  --card-shadow:0 1px 2px rgba(0,0,0,.05);
+
+  /* 九個構面的識別色（Apple system colors） */
+  --h1:#007AFF; --h2:#5856D6; --h3:#AF52DE; --h4:#FF2D55; --h5:#FF9500;
+  --h6:#34C759; --h7:#30B0C7; --h8:#00C7BE; --h9:#A2845E;
+
+  --spring:cubic-bezier(.32,.72,0,1);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#000000;
+    --surface:#1C1C1E;
+    --ink:#F5F5F7;
+    --ink-2:#98989D;
+    --ink-3:#8E8E93;
+    --sep:rgba(84,84,88,.55);
+    --fill:rgba(118,118,128,.24);
+    --fill-2:rgba(118,118,128,.14);
+    --thumb:#636366;
+    --thumb-shadow:0 3px 8px rgba(0,0,0,.4);
+    --bar:rgba(20,20,22,.8);
+    --accent:#0A84FF;
+    --accent-soft:rgba(10,132,255,.18);
+    --warn:#FF9F0A;
+    --danger:#FF453A;
+    --card-shadow:none;
+    --h1:#0A84FF; --h2:#5E5CE6; --h3:#BF5AF2; --h4:#FF375F; --h5:#FF9F0A;
+    --h6:#30D158; --h7:#40C8E0; --h8:#63E6E2; --h9:#AC8E68;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#000000;
+  --surface:#1C1C1E;
+  --ink:#F5F5F7;
+  --ink-2:#98989D;
+  --ink-3:#8E8E93;
+  --sep:rgba(84,84,88,.55);
+  --fill:rgba(118,118,128,.24);
+  --fill-2:rgba(118,118,128,.14);
+  --thumb:#636366;
+  --thumb-shadow:0 3px 8px rgba(0,0,0,.4);
+  --bar:rgba(20,20,22,.8);
+  --accent:#0A84FF;
+  --accent-soft:rgba(10,132,255,.18);
+  --warn:#FF9F0A;
+  --danger:#FF453A;
+  --card-shadow:none;
+  --h1:#0A84FF; --h2:#5E5CE6; --h3:#BF5AF2; --h4:#FF375F; --h5:#FF9F0A;
+  --h6:#30D158; --h7:#40C8E0; --h8:#63E6E2; --h9:#AC8E68;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--font);
+  font-size:17px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font:inherit;color:inherit;margin:0}
+p{margin:0}
+h1,h2,h3{margin:0;font-weight:700;text-wrap:balance}
+input,textarea{font:inherit;color:inherit}
+
+/* ─── Navigation bar（材質模糊 + 進度軌） ─── */
+.nav{
+  position:sticky;
+  top:env(safe-area-inset-top, 0px);
+  z-index:40;
+  background:var(--bar);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+}
+.nav-inner{
+  max-width:680px;margin:0 auto;
+  height:48px;padding:0 8px;
+  display:grid;grid-template-columns:96px 1fr 96px;align-items:center;
+}
+.nav-title{
+  text-align:center;font-size:15px;font-weight:600;
+  opacity:0;transform:translateY(4px);
+  transition:opacity .22s ease, transform .22s ease;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nav.is-scrolled .nav-title{opacity:1;transform:none}
+.nav-back{
+  display:inline-flex;align-items:center;gap:1px;
+  background:none;border:0;padding:6px 8px;border-radius:8px;
+  color:var(--accent);font-size:15px;cursor:pointer;white-space:nowrap;
+}
+.nav-back[hidden]{display:none}
+.nav-back:active{opacity:.4}
+.nav-count{
+  justify-self:end;padding-right:8px;
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;
+  color:var(--ink-3);letter-spacing:.02em;
+}
+.rail{height:2px;background:var(--sep)}
+.rail-fill{
+  height:100%;width:0%;background:var(--hue, var(--accent));
+  transition:width .5s var(--spring), background-color .4s ease;
+}
+
+/* ─── Screen 版面 ─── */
+.stage{max-width:680px;margin:0 auto;padding:0 20px 140px}
+.screen{padding-top:20px}
+.screen.enter{animation:push .42s var(--spring) both}
+.screen.enter-back{animation:pop .42s var(--spring) both}
+@keyframes push{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+
+.eyebrow{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;
+  color:var(--hue, var(--accent));text-transform:uppercase;
+  margin-bottom:10px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.large-title{font-size:32px;line-height:1.24;letter-spacing:-.3px;margin-bottom:8px}
+.lede{color:var(--ink-2);font-size:15px;line-height:1.65;margin-bottom:24px}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* ─── Inset grouped list（iOS 設定式清單） ─── */
+.group{margin:0 0 26px}
+.group-label{
+  font-size:13px;color:var(--ink-2);font-weight:400;
+  padding:0 16px 7px;letter-spacing:.01em;
+}
+.group-footer{font-size:13px;color:var(--ink-3);padding:8px 16px 0;line-height:1.5}
+.card{
+  background:var(--surface);
+  border-radius:var(--radius);
+  box-shadow:var(--card-shadow);
+  overflow:hidden;
+}
+.row{
+  display:flex;align-items:center;gap:12px;
+  width:100%;text-align:start;
+  padding:13px 16px;
+  background:none;border:0;cursor:pointer;
+  position:relative;
+  font-size:17px;
+}
+.row + .row::before{
+  content:"";position:absolute;left:16px;right:0;top:0;height:1px;background:var(--sep);
+}
+.row:active{background:var(--fill-2)}
+.row-text{flex:1;line-height:1.45}
+.row-note{font-size:13px;color:var(--ink-3);margin-top:2px}
+.check{
+  width:22px;height:14px;flex:none;color:var(--accent);
+  opacity:0;transform:scale(.6);
+  transition:opacity .18s ease, transform .3s var(--spring);
+}
+.row[aria-checked="true"] .check,.row[aria-selected="true"] .check{opacity:1;transform:none}
+.row[aria-checked="true"] .row-text{font-weight:500}
+
+.field{padding:6px 16px 12px}
+.field input[type="text"],.field textarea{
+  width:100%;background:var(--fill-2);border:1px solid var(--sep);
+  border-radius:10px;padding:11px 13px;resize:vertical;
+  line-height:1.6;transition:border-color .16s ease, background-color .16s ease;
+}
+.field textarea{min-height:104px}
+.field input:focus,.field textarea:focus{
+  outline:none;border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+.field-hint{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12px;color:var(--ink-3)}
+.field-hint .count{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ─── 量表題項 ─── */
+.legend{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 16px;background:var(--fill-2);
+  font-size:12px;color:var(--ink-2);
+  border-bottom:1px solid var(--sep);
+}
+.legend b{color:var(--hue);font-family:var(--mono);font-weight:500}
+.item{padding:16px 16px 12px;position:relative}
+.item + .item::before{
+  content:"";position:absolute;left:16px;right:16px;top:0;height:1px;background:var(--sep);
+}
+.item-head{display:flex;gap:10px;margin-bottom:12px}
+.item-no{
+  font-family:var(--mono);font-size:12px;color:var(--ink-3);
+  padding-top:4px;font-variant-numeric:tabular-nums;flex:none;
+}
+.item-text{font-size:16px;line-height:1.6;flex:1}
+.item.miss{background:color-mix(in srgb, var(--warn) 9%, transparent)}
+.item.miss::after{
+  content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--warn);
+}
+.group.miss .card{box-shadow:0 0 0 1.5px var(--warn)}
+.group.miss .group-label{color:var(--warn)}
+.shake{animation:shake .4s ease}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)} 30%,70%{transform:translateX(4px)} 50%{transform:translateX(-4px)}
+}
+
+/* Segmented control */
+.seg{
+  position:relative;display:grid;grid-template-columns:repeat(5,1fr);
+  padding:3px;background:var(--fill);border-radius:10px;
+}
+.seg-thumb{
+  position:absolute;top:3px;bottom:3px;left:3px;
+  width:calc((100% - 6px) / 5);
+  background:var(--thumb);border-radius:8px;box-shadow:var(--thumb-shadow);
+  transform:translateX(calc(var(--i, 0) * 100%));
+  transition:transform .32s var(--spring), opacity .18s ease;
+  opacity:0;pointer-events:none;
+}
+.seg[data-value] .seg-thumb{opacity:1}
+.seg-opt{
+  position:relative;z-index:1;
+  background:none;border:0;padding:9px 0;cursor:pointer;
+  font-family:var(--mono);font-size:15px;font-weight:400;color:var(--ink-2);
+  border-radius:8px;
+  transition:color .18s ease, font-weight .18s ease;
+}
+.seg-opt::before{
+  content:"";position:absolute;left:0;top:6px;bottom:6px;width:1px;background:var(--sep);
+  opacity:1;transition:opacity .18s ease;
+}
+.seg-opt:first-child::before,.seg-opt.hide-divider::before,.seg-opt[aria-checked="true"]::before{opacity:0}
+.seg-opt[aria-checked="true"]{color:var(--hue, var(--accent));font-weight:500}
+.seg-opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg-opt:active{transform:scale(.96)}
+.item-answer{
+  min-height:18px;margin-top:6px;text-align:center;
+  font-size:13px;color:var(--hue, var(--accent));font-weight:500;
+  opacity:0;transition:opacity .2s ease;
+}
+.item-answer.on{opacity:1}
+
+/* ─── 同意書 ─── */
+.consent{padding:18px 18px 20px;font-size:15px;line-height:1.85;color:var(--ink-2)}
+.consent p{margin:0 0 14px}
+.consent p:last-child{margin:0}
+.consent strong{color:var(--ink);font-weight:600}
+.switch-row{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.switch-row .row-text{font-size:16px;font-weight:500}
+.switch{
+  flex:none;width:51px;height:31px;border-radius:16px;border:0;padding:2px;
+  background:var(--fill);cursor:pointer;position:relative;
+  transition:background-color .28s var(--spring);
+}
+.switch[aria-checked="true"]{background:#34C759}
+.switch .knob{
+  display:block;width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.06);
+  transform:translateX(0);
+  transition:transform .28s var(--spring);
+}
+.switch[aria-checked="true"] .knob{transform:translateX(20px)}
+.switch:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ─── 情境卡 ─── */
+.scenario{
+  padding:18px;background:var(--surface);border-radius:var(--radius);
+  box-shadow:var(--card-shadow);
+  border-inline-start:3px solid var(--hue);
+  font-size:16px;line-height:1.75;margin-bottom:20px;
+}
+.scenario .tag{
+  display:inline-block;margin-bottom:8px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--hue);
+}
+
+/* ─── 檢查頁 ─── */
+.review-row{display:flex;align-items:center;gap:12px;padding:13px 16px;width:100%;background:none;border:0;text-align:start;cursor:pointer;position:relative}
+.review-row + .review-row::before{content:"";position:absolute;left:16px;right:0;top:0;height:1px;background:var(--sep)}
+.review-row:active{background:var(--fill-2)}
+.pill{
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;
+  padding:3px 9px;border-radius:20px;background:var(--fill);color:var(--ink-2);flex:none;
+}
+.pill.done{background:color-mix(in srgb, #34C759 16%, transparent);color:#1f8f3d}
+:root[data-theme="dark"] .pill.done{color:#30D158}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.done{color:#30D158}}
+.pill.todo{background:color-mix(in srgb, var(--warn) 18%, transparent);color:#a86000}
+:root[data-theme="dark"] .pill.todo{color:var(--warn)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.todo{color:var(--warn)}}
+.chev{width:8px;height:13px;flex:none;color:var(--ink-3);opacity:.6}
+
+/* ─── 完成頁 ─── */
+.finish{text-align:center;padding:34px 0 8px}
+.tick{width:84px;height:84px;margin-bottom:20px}
+.tick circle{fill:none;stroke:#34C759;stroke-width:3;opacity:.22}
+.tick path{
+  fill:none;stroke:#34C759;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:48;stroke-dashoffset:48;
+  animation:draw .55s var(--spring) .18s forwards;
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+.stat-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;position:relative}
+.stat-row + .stat-row::before{content:"";position:absolute;left:16px;right:0;top:0;height:1px;background:var(--sep)}
+.stat-row .k{color:var(--ink-2);font-size:15px}
+.stat-row .v{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+
+/* ─── 底部工具列 ─── */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:var(--bar);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  border-top:1px solid var(--sep);
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.bar-inner{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:7px}
+@media (min-width:600px){
+  .bar-inner{max-width:420px}
+}
+.btn{
+  width:100%;border:0;border-radius:12px;padding:15px 20px;
+  font-size:17px;font-weight:600;cursor:pointer;
+  background:var(--accent);color:var(--on-accent);
+  transition:transform .2s var(--spring), opacity .2s ease, background-color .2s ease;
+}
+.btn:active{transform:scale(.975)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.btn.ghost{background:var(--fill);color:var(--accent)}
+.bar-hint{text-align:center;font-size:12px;color:var(--ink-3)}
+
+/* ─── Toast ─── */
+.toast{
+  position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom, 0px));
+  transform:translate(-50%, 14px);
+  z-index:60;max-width:calc(100% - 40px);
+  padding:11px 18px;border-radius:22px;
+  background:rgba(28,28,30,.92);color:#fff;font-size:14px;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:0 8px 28px rgba(0,0,0,.24);
+  opacity:0;pointer-events:none;
+  transition:opacity .24s ease, transform .3s var(--spring);
+}
+:root[data-theme="dark"] .toast{background:rgba(58,58,60,.94)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .toast{background:rgba(58,58,60,.94)}}
+.toast.on{opacity:1;transform:translate(-50%, 0)}
+
+.notice{
+  display:flex;gap:11px;padding:14px 16px;border-radius:12px;
+  background:color-mix(in srgb, var(--danger) 10%, transparent);
+  color:var(--danger);font-size:14px;line-height:1.6;margin-bottom:18px;
+}
+.notice.info{background:var(--fill-2);color:var(--ink-2)}
+
+@media (max-width:420px){
+  .large-title{font-size:28px}
+  .item-text{font-size:15.5px}
+  .seg-opt{font-size:14px;padding:8px 0}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <button class="nav-back" id="back" hidden aria-label="上一步">
+      <svg width="11" height="18" viewBox="0 0 11 18" aria-hidden="true"><path d="M9.5 1.5 2 9l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      上一步
+    </button>
+    <div class="nav-title" id="navTitle">行銷管理課程前測問卷</div>
+    <div class="nav-count" id="navCount"></div>
+  </div>
+  <div class="rail"><div class="rail-fill" id="rail"></div></div>
+</header>
+
+<main class="stage" id="stage"></main>
+
+<footer class="bar" id="bar">
+  <div class="bar-inner">
+    <button class="btn" id="primary">開始填答</button>
+    <div class="bar-hint" id="barHint">作答進度會自動保存在這台裝置</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ═══════════════════════════════════════════════
+   可調整參數（對應 Google Apps Script 版本）
+   ═══════════════════════════════════════════════ */
+const FORM_TITLE = "行銷管理課程問卷（前測）V3";
+const FORM_VERSION = "V3";
+const CONTACT_EMAIL = "（請填入聯絡信箱）";   // ← 發放前務必填入真實信箱
+const SHOW_ITEM_CODES = false;               // true = 題目前顯示 IM1／TD1 等代碼
+const SHOW_CONSTRUCT_NAMES = false;          // true = 顯示「內在動機」等構面名稱
+
+const LIKERT = ["非常不同意", "不同意", "普通", "同意", "非常同意"];
+
+const CONSENT = [
+  "親愛的同學，您好：",
+  "本問卷為教育部教學實踐研究計畫之基線調查，由世新大學企業管理學系林建江助理教授主持。本調查目的在了解您在課程開始前的學習狀況與生成式 AI 工具使用經驗，作為課程設計改善的參考依據。",
+  "參與本調查完全出於自願，您可以隨時停止填答，不參與或中途退出均不會影響您的課程成績或與授課教師的關係。所有填答資料將以匿名方式保存與分析，個人資訊絕不對外揭露，僅供本計畫學術研究使用。研究成果若公開發表，亦不會出現任何可辨識個人身份的資料。",
+  "若您對本研究有任何疑問，歡迎聯絡計畫主持人：林建江助理教授，電子郵件：" + CONTACT_EMAIL + "。",
+  "問卷填答約需 15 分鐘，感謝您撥冗填答！"
+];
+
+/* ═══════════════════════════════════════════════
+   題庫
+   ═══════════════════════════════════════════════ */
+const BG_GROUPS = [
+  { label:"A・個人基本資料", qs:[
+    { id:"A1", title:"性別", type:"single", options:["男","女","其他","不願透露"] },
+    { id:"A2", title:"年級", type:"single", options:["一年級","二年級","三年級","四年級","研究生"] },
+    { id:"A3", title:"科系", type:"text", placeholder:"請填寫您的系所名稱" }
+  ]},
+  { label:"B・學業表現自評", qs:[
+    { id:"B1", title:"您上一學期的學業成績，相較於班上同學，您認為自己屬於：", type:"single",
+      options:["前 10%","前 25%","中間 50%","後 25%","後 10%"] }
+  ]},
+  { label:"C・相關課程修習狀況", qs:[
+    { id:"C1", title:"您曾修習過哪些與行銷相關的課程？", type:"para",
+      help:"請填寫課程名稱，若無請填「無」", placeholder:"例如：行銷學概論、消費者行為……" },
+    { id:"C2", title:"您修習本課程（行銷管理）的主要動機是", type:"multi", note:"可複選",
+      options:["必修課程","個人對行銷領域有興趣","對課程內容有期待","希望對未來職涯有幫助"], other:true }
+  ]},
+  { label:"D・GenAI 工具使用經驗", qs:[
+    { id:"D1", title:"您目前使用生成式 AI 工具的頻率：", help:"如 ChatGPT、Claude、Gemini、Copilot 等",
+      type:"single", options:["從未使用","每月數次","每週數次","幾乎每天","每天多次"] },
+    { id:"D2", title:"您開始使用 GenAI 工具大約多久了：", type:"single",
+      options:["從未使用","不到 6 個月","6 個月至 1 年","1 至 2 年","超過 2 年"] },
+    { id:"D3", title:"您主要使用 GenAI 工具的用途是", type:"multi", note:"可複選",
+      options:["撰寫作業或報告","查詢資料與整理筆記","程式撰寫或除錯","創意發想與腦力激盪","翻譯或語言學習","娛樂消遣"], other:true }
+  ]}
+];
+
+const SCALES = [
+  { code:"IM", name:"內在動機", en:"Intrinsic Motivation", items:[
+    ["IM1","我對行銷管理這門課的學習內容感到真心好奇。"],
+    ["IM2","即使沒有成績壓力，我也會想深入了解行銷相關知識。"],
+    ["IM3","學習行銷管理的過程本身就讓我感到有趣。"],
+    ["IM4","我願意在課外花時間主動探索行銷相關議題。"],
+    ["IM5","在行銷課程中學到新知識，對我而言是一種享受。"]
+  ]},
+  { code:"TD", name:"工具依賴度", en:"AI Tool Dependency", items:[
+    ["TD1","遇到課業問題時，我的第一反應是開啟 GenAI 工具來尋求協助。"],
+    ["TD2","在沒有 GenAI 工具可以使用的情況下，我完成作業會比較費力。"],
+    ["TD3","當 GenAI 提供答案後，我通常不會再另外搜尋其他資料來比對。"],
+    ["TD4","使用 GenAI 工具後，我覺得不需要再花很多時間查找其他資訊來源。"],
+    ["TD5","我對 GenAI 工具產生的內容通常覺得夠用，不太需要大幅度修改。"]
+  ]},
+  { code:"AIL", name:"AI 素養", en:"AI Literacy", items:[
+    ["AIL1","我了解生成式 AI 工具的基本運作方式（例如：它是根據機率來預測文字，而不是真正「理解」問題的意思）。"],
+    ["AIL2","我清楚了解 GenAI 工具可能在不知情的情況下產生錯誤資訊，而且這種錯誤有時從外觀上難以判斷。"],
+    ["AIL3","我能夠根據不同任務的需求，選擇適合的 GenAI 工具。"],
+    ["AIL4","我能夠設計有效的提示語（prompt），引導 GenAI 產出我需要的內容。"],
+    ["AIL5","我能夠辨別 GenAI 提供的資訊是否可信，並進一步查證。"]
+  ]},
+  { code:"CT", name:"批判性思考傾向", en:"Critical Thinking Disposition", items:[
+    ["CT1","面對問題時，我習慣從多個角度思考，而不是接受第一個看起來合理的答案。"],
+    ["CT2","當我讀到某個論點時，我會主動尋找與它相反的證據或觀點。"],
+    ["CT3","我願意在得出結論之前，花時間仔細評估所有可用的資訊。"],
+    ["CT4","即使某個答案來自權威來源，我仍然會思考它是否合理。"],
+    ["CT5","遇到複雜問題時，我享受深入分析的過程，而不急著找到快速答案。"]
+  ]},
+  { code:"SA", name:"主體性信念", en:"Student Agency Beliefs", items:[
+    ["SA1","我相信自己能夠影響自己在這門課中的學習方向。"],
+    ["SA2","我有能力主動調整自己的學習方式，以達到更好的學習效果。"],
+    ["SA3","遇到學習上的困難時，我會主動尋找資源來解決問題。"],
+    ["SA4","我會主動決定自己在這門課中優先學習哪些內容，而不只是被動地跟著課程進度走。"],
+    ["SA5","我願意為自己的學習決策和成果負起責任。"],
+    ["SA6","即使課程要求不高，我也會主動要求自己達到更高的標準。"]
+  ]},
+  { code:"MDQ", name:"行銷任務自我效能", en:"Marketing Task Self-Efficacy", items:[
+    ["MDQ1","我相信自己有能力蒐集並分析某個產業的相關資訊，找出其中的機會與風險。"],
+    ["MDQ2","我相信自己能夠根據現有資料，判斷哪一群消費者最可能對某個產品感興趣。"],
+    ["MDQ3","我相信自己能夠為一個產品或服務想出吸引消費者的宣傳方式。"],
+    ["MDQ4","面對行銷上的複雜問題，我有信心自己能夠做出有根據的判斷。"],
+    ["MDQ5","我能夠比較不同行銷方案各自的優缺點，並選出最適合的方向。"]
+  ]},
+  { code:"CO", name:"認知卸載傾向", en:"Cognitive Offloading Tendency", items:[
+    ["CO1","需要整理複雜資訊時，我通常會先請 GenAI 幫我做初步歸納。"],
+    ["CO2","遇到需要創意發想的任務，我習慣先參考 GenAI 的建議，再進一步發展自己的想法。"],
+    ["CO3","我通常讓 GenAI 幫我決定文章或報告的大致架構，再由我填入具體內容。"],
+    ["CO4","自從使用 GenAI 之後，我有時會覺得不需要把課程內容背得那麼熟。"],
+    ["CO5","面對學習任務時，我傾向先讓 GenAI 處理，再由我來判斷結果是否合用。"]
+  ]},
+  { code:"CA", name:"AI 輸出批判審視", en:"Critical Appraisal of AI", items:[
+    ["CA1","當 GenAI 提供行銷相關資訊時，我會查核其內容是否正確。"],
+    ["CA2","我會評估 GenAI 所產出的行銷分析或報告內容的品質高低。"],
+    ["CA3","我會判斷 GenAI 給出的行銷建議是否符合實際市場的情況。"],
+    ["CA4","使用 GenAI 輔助行銷決策後，我會反思它的建議是否真正符合我的需求。"],
+    ["CA5","我能夠分析 GenAI 在處理行銷問題時可能存在的限制。"],
+    ["CA6","我會留意 GenAI 所產生的行銷內容是否帶有特定立場或偏見。"],
+    ["CA7","針對 GenAI 提供的行銷資訊，我會再透過其他來源加以確認。"]
+  ]},
+  { code:"CL", name:"認知負荷", en:"Cognitive Load", items:[
+    ["CL1","當我需要整合多個資訊來源（課本、上課內容、網路資料）來完成作業時，我感到心智上非常費力。"],
+    ["CL2","在學習過程中，我常常感到自己需要同時處理太多事情，以至於難以全部理解。"],
+    ["CL3","即使我花了很多時間和精力，我仍然覺得有些學習內容很難真正弄懂。"]
+  ]}
+];
+
+const SJ_PROMPT = "您正在為一個本地飲料品牌撰寫市場競爭分析報告。您使用 ChatGPT 詢問台灣手搖飲市場的現況，GenAI 提供了一份看起來完整的市場分析，包含市場規模數字與主要競爭者名單。請問您接下來會怎麼做？";
+
+/* ═══════════════════════════════════════════════
+   流程
+   ═══════════════════════════════════════════════ */
+const SCREENS = [
+  { kind:"welcome", nav:FORM_TITLE },
+  { kind:"bg", groups:[0,1], nav:"基本背景資料", part:"第一部分", title:"關於你" },
+  { kind:"bg", groups:[2],   nav:"課程修習狀況", part:"第一部分", title:"行銷課程經驗" },
+  { kind:"bg", groups:[3],   nav:"GenAI 使用經驗", part:"第一部分", title:"你與 GenAI" },
+  ...SCALES.map((s, i) => ({ kind:"scale", index:i, nav:"量表題項 " + (i+1) + " / " + SCALES.length, part:"第二部分" })),
+  { kind:"sj", nav:"情境判斷", part:"附加題", title:"如果是你，會怎麼做？" },
+  { kind:"review", nav:"檢查與送出", part:"最後一步", title:"送出前，再看一眼" },
+  { kind:"done", nav:"已完成" }
+];
+
+const TOTAL_ITEMS = SCALES.reduce((n, s) => n + s.items.length, 0);
+const BG_IDS = BG_GROUPS.flatMap(g => g.qs.map(q => q.id));
+const TOTAL_REQUIRED = TOTAL_ITEMS + BG_IDS.length;
+const STORE_KEY = "mkt-pretest-v3-draft";
+
+/* ═══════════════════════════════════════════════
+   狀態
+   ═══════════════════════════════════════════════ */
+const blank = () => ({
+  rid: newId(),
+  consent: false,
+  bg: {},
+  other: {},
+  items: {},
+  sj: "",
+  startedAt: new Date().toISOString(),
+  elapsed: 0,
+  screen: 0
+});
+
+let state = blank();
+let dir = "fwd";
+let lastTick = Date.now();
+let toastTimer = 0;
+let busy = false;
+
+function newId(){
+  if (self.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "r-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && saved.rid && saved.items) state = Object.assign(blank(), saved);
+    if (state.screen >= SCREENS.length - 1) state.screen = SCREENS.length - 2;
+  }catch(e){ /* 草稿毀損就重新開始 */ }
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function clearDraft(){
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+}
+
+/* ═══════════════════════════════════════════════
+   小工具
+   ═══════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const hue = i => "var(--h" + (i + 1) + ")";
+
+const CHECK_SVG = '<svg class="check" viewBox="0 0 17 13" aria-hidden="true"><path d="M1.5 6.8 6 11.2 15.4 1.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHEV_SVG = '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.2 1.2 6.6 6.5 1.2 11.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function answeredCount(){
+  let n = BG_IDS.filter(id => filled(id)).length;
+  n += Object.keys(state.items).length;
+  return n;
+}
+function filled(id){
+  const v = state.bg[id];
+  if (Array.isArray(v)) return v.length > 0;
+  return typeof v === "string" ? v.trim() !== "" : v != null;
+}
+function scaleDone(i){
+  return SCALES[i].items.every(it => state.items[it[0]] != null);
+}
+function bgGroupDone(g){
+  return BG_GROUPS[g].qs.every(q => filled(q.id));
+}
+function fmtDuration(sec){
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return m > 0 ? m + " 分 " + String(s).padStart(2, "0") + " 秒" : s + " 秒";
+}
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("on"), 2600);
+}
+
+/* ═══════════════════════════════════════════════
+   畫面組件
+   ═══════════════════════════════════════════════ */
+function titleBlock(part, title, lede, hueVar){
+  return '<div class="eyebrow" style="--hue:' + hueVar + '"><span class="dot"></span>' + esc(part) + '</div>' +
+         '<h1 class="large-title">' + esc(title) + '</h1>' +
+         (lede ? '<p class="lede">' + lede + '</p>' : '');
+}
+
+function renderWelcome(){
+  const rows = [
+    ["約 15 分鐘", "共 " + TOTAL_REQUIRED + " 題，另有 1 題選填"],
+    ["匿名填答", "不會記錄姓名、學號或電子郵件"],
+    ["隨時可退出", "不影響課程成績與師生關係"]
+  ].map(r =>
+    '<div class="row" style="cursor:default"><div class="row-text">' + esc(r[0]) +
+    '<div class="row-note">' + esc(r[1]) + '</div></div></div>'
+  ).join("");
+
+  const consent = CONSENT.map(p => "<p>" + esc(p) + "</p>").join("");
+
+  return titleBlock("教學實踐研究計畫　基線調查", FORM_TITLE,
+      "在 GenAI 時代培養行銷教育中的<strong>認識論否決能力</strong><br>主持人：世新大學企業管理學系　林建江 助理教授", "var(--h1)") +
+    '<div class="group"><div class="card">' + rows + '</div></div>' +
+    '<div class="group"><div class="group-label">知情同意說明</div>' +
+      '<div class="card"><div class="consent">' + consent + '</div></div></div>' +
+    '<div class="group"><div class="card">' +
+      '<div class="switch-row"><div class="row-text">我已閱讀上述說明，並同意參與本研究</div>' +
+      '<button class="switch" id="consentSwitch" role="switch" aria-checked="' + (state.consent ? "true" : "false") +
+      '" aria-label="同意參與本研究"><span class="knob"></span></button></div>' +
+    '</div></div>';
+}
+
+function renderQuestion(q){
+  const label = '<div class="group-label">' + esc(q.title) + (q.note ? "（" + esc(q.note) + "）" : "") +
+    (q.help ? '<div style="margin-top:3px;color:var(--ink-3)">' + esc(q.help) + "</div>" : "") + "</div>";
+  let body = "";
+
+  if (q.type === "single" || q.type === "multi"){
+    const current = state.bg[q.id];
+    const isOn = opt => q.type === "multi"
+      ? Array.isArray(current) && current.includes(opt)
+      : current === opt;
+
+    body = q.options.map(opt =>
+      '<button class="row" role="' + (q.type === "multi" ? "checkbox" : "radio") + '" aria-checked="' + (isOn(opt) ? "true" : "false") +
+      '" data-act="opt" data-q="' + q.id + '" data-multi="' + (q.type === "multi") + '" data-v="' + esc(opt) + '">' +
+      '<span class="row-text">' + esc(opt) + "</span>" + CHECK_SVG + "</button>"
+    ).join("");
+
+    if (q.other){
+      const on = isOn("其他");
+      body += '<button class="row" role="checkbox" aria-checked="' + (on ? "true" : "false") +
+        '" data-act="opt" data-q="' + q.id + '" data-multi="true" data-v="其他">' +
+        '<span class="row-text">其他</span>' + CHECK_SVG + "</button>";
+      if (on){
+        body += '<div class="field"><input type="text" id="other-' + q.id + '" data-act="other" data-q="' + q.id +
+          '" value="' + esc(state.other[q.id] || "") + '" placeholder="請說明" aria-label="其他，請說明"></div>';
+      }
+    }
+  } else if (q.type === "text"){
+    body = '<div class="field" style="padding-top:12px"><input type="text" id="f-' + q.id + '" data-act="txt" data-q="' + q.id +
+      '" value="' + esc(state.bg[q.id] || "") + '" placeholder="' + esc(q.placeholder || "") + '" aria-label="' + esc(q.title) + '"></div>';
+  } else {
+    const v = state.bg[q.id] || "";
+    body = '<div class="field" style="padding-top:12px"><textarea id="f-' + q.id + '" data-act="txt" data-q="' + q.id +
+      '" placeholder="' + esc(q.placeholder || "") + '" aria-label="' + esc(q.title) + '">' + esc(v) + "</textarea></div>";
+  }
+
+  return '<div class="group" id="q-' + q.id + '">' + label + '<div class="card">' + body + "</div></div>";
+}
+
+function renderBG(sc){
+  const lede = sc.groups.includes(0)
+    ? "這幾題用來描述整體樣本的組成，<strong>不會用來辨識個人</strong>。"
+    : (sc.groups.includes(2)
+      ? "先了解你帶進這門課的行銷背景。"
+      : "接著談談你平常怎麼用生成式 AI。");
+
+  let html = titleBlock(sc.part, sc.title, lede, "var(--h1)");
+  sc.groups.forEach(gi => {
+    html += '<div class="group-label" style="font-weight:600;color:var(--ink);padding-bottom:10px">' + esc(BG_GROUPS[gi].label) + "</div>";
+    BG_GROUPS[gi].qs.forEach(q => { html += renderQuestion(q); });
+  });
+  return html;
+}
+
+function renderScale(sc){
+  const s = SCALES[sc.index];
+  const h = hue(sc.index);
+  const n = s.items.length;
+  const heading = SHOW_CONSTRUCT_NAMES ? s.name : "請依照您個人的實際狀況或感受作答";
+  const eyebrow = String(sc.index + 1).padStart(2, "0") + " / " + String(SCALES.length).padStart(2, "0") +
+    "　共 " + n + " 題" + (SHOW_CONSTRUCT_NAMES ? "　" + s.en : "");
+
+  const items = s.items.map((it, i) => {
+    const code = it[0], text = it[1];
+    const v = state.items[code];
+    return '<div class="item" id="item-' + code + '" style="--hue:' + h + '">' +
+      '<div class="item-head"><span class="item-no">' + String(i + 1).padStart(2, "0") + "</span>" +
+      '<p class="item-text">' + (SHOW_ITEM_CODES ? '<span class="item-no">' + code + ". </span>" : "") + esc(text) + "</p></div>" +
+      '<div class="seg" role="radiogroup" aria-label="' + esc(text) + '" data-code="' + code + '"' +
+        (v ? ' data-value="' + v + '" style="--i:' + (v - 1) + '"' : ' style="--i:0"') + ">" +
+        '<span class="seg-thumb" aria-hidden="true"></span>' +
+        LIKERT.map((lab, k) =>
+          '<button class="seg-opt" role="radio" aria-checked="' + (v === k + 1 ? "true" : "false") +
+          '" aria-label="' + (k + 1) + " " + esc(lab) + '" tabindex="' + ((v ? v === k + 1 : k === 0) ? "0" : "-1") +
+          '" data-act="likert" data-code="' + code + '" data-v="' + (k + 1) + '">' + (k + 1) + "</button>"
+        ).join("") +
+      "</div>" +
+      '<div class="item-answer' + (v ? " on" : "") + '" data-answer="' + code + '">' + (v ? esc(v + "　" + LIKERT[v - 1]) : "") + "</div>" +
+      "</div>";
+  }).join("");
+
+  return '<div style="--hue:' + h + '">' +
+    titleBlock(eyebrow, heading, "本量表沒有正確或錯誤答案，請依第一直覺誠實作答。每題均請作答，請勿遺漏。", h) +
+    '<div class="group"><div class="card">' +
+      '<div class="legend" style="--hue:' + h + '"><span><b>1</b>　非常不同意</span><span><b>5</b>　非常同意</span></div>' +
+      items +
+    "</div><div class=\"group-footer\">1 非常不同意　2 不同意　3 普通　4 同意　5 非常同意</div></div></div>";
+}
+
+function renderSJ(sc){
+  const h = "var(--h9)";
+  const len = (state.sj || "").length;
+  return '<div style="--hue:' + h + '">' +
+    titleBlock(sc.part + "・選填", sc.title, "這題不計分、也可以留白。請以 2 至 4 句話描述你的處理方式。", h) +
+    '<div class="scenario"><span class="tag">SCENARIO</span><br>' + esc(SJ_PROMPT) + "</div>" +
+    '<div class="group"><div class="card"><div class="field" style="padding-top:14px">' +
+      '<textarea id="sj" data-act="sj" placeholder="我會先……" aria-label="情境判斷作答">' + esc(state.sj || "") + "</textarea>" +
+      '<div class="field-hint"><span>選填，可略過</span><span class="count" id="sjCount">' + len + " 字</span></div>" +
+    "</div></div></div></div>";
+}
+
+function renderReview(sc){
+  const rows = [];
+  SCREENS.forEach((s, i) => {
+    if (s.kind === "bg"){
+      const done = s.groups.every(bgGroupDone);
+      const total = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.length, 0);
+      const got = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.filter(q => filled(q.id)).length, 0);
+      rows.push({ i, label:s.nav, done, text:got + " / " + total });
+    } else if (s.kind === "scale"){
+      const items = SCALES[s.index].items;
+      const got = items.filter(it => state.items[it[0]] != null).length;
+      rows.push({ i, label:"量表 " + String(s.index + 1).padStart(2, "0") +
+        (SHOW_CONSTRUCT_NAMES ? "　" + SCALES[s.index].name : ""), done:got === items.length, text:got + " / " + items.length });
+    } else if (s.kind === "sj"){
+      rows.push({ i, label:"情境判斷（選填）", done:true, text:(state.sj || "").trim() ? "已填寫" : "略過" });
+    }
+  });
+
+  const missing = rows.filter(r => !r.done).length;
+  const list = rows.map(r =>
+    '<button class="review-row" data-act="goto" data-i="' + r.i + '">' +
+    '<span class="row-text">' + esc(r.label) + "</span>" +
+    '<span class="pill ' + (r.done ? "done" : "todo") + '">' + esc(r.text) + "</span>" + CHEV_SVG + "</button>"
+  ).join("");
+
+  const lede = missing === 0
+    ? "所有必答題都完成了。送出後將無法修改。"
+    : "還有 <strong>" + missing + " 個段落</strong>未完成，點一下可直接跳過去補答。";
+
+  return titleBlock(sc.part, sc.title, lede, "var(--h6)") +
+    (missing === 0 ? "" : '<div class="notice"><span>未完成的段落無法送出，請先補齊必答題。</span></div>') +
+    '<div class="group"><div class="card">' + list + "</div>" +
+      '<div class="group-footer">送出後，您的作答將以匿名形式儲存，僅供本計畫學術研究使用。</div></div>';
+}
+
+function renderDone(){
+  const mode = state.saved === "cloud"
+    ? "已送出並儲存"
+    : "已在這台裝置完成";
+  const note = state.saved === "cloud"
+    ? "感謝您撥冗填答。您的填答已匿名送出，不會與姓名或學號連結。"
+    : "本次填答未能連上儲存服務，資料僅保留在這台裝置。請下載備份，或改由表單連結重新送出。";
+
+  return '<div class="finish">' +
+      '<svg class="tick" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33"/><path d="M22 37.5 32 47 50 26.5"/></svg>' +
+      '<h1 class="large-title">' + esc(mode) + "</h1>" +
+      '<p class="lede" style="margin-bottom:26px">' + esc(note) + "</p>" +
+    "</div>" +
+    '<div class="group"><div class="card">' +
+      statRow("作答題數", answeredCount() + " / " + TOTAL_REQUIRED) +
+      statRow("情境判斷", (state.sj || "").trim() ? (state.sj.trim().length + " 字") : "略過") +
+      statRow("填答時間", fmtDuration(state.elapsed)) +
+      statRow("紀錄編號", state.rid.slice(0, 8)) +
+    "</div><div class=\"group-footer\">若對本研究有任何疑問，請聯絡計畫主持人林建江助理教授：" + esc(CONTACT_EMAIL) + "</div></div>";
+}
+function statRow(k, v){
+  return '<div class="stat-row"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + "</span></div>";
+}
+
+/* ═══════════════════════════════════════════════
+   繪製與導覽
+   ═══════════════════════════════════════════════ */
+function render(){
+  const sc = SCREENS[state.screen];
+  const stage = $("stage");
+  let html = "";
+
+  if (sc.kind === "welcome") html = renderWelcome();
+  else if (sc.kind === "bg") html = renderBG(sc);
+  else if (sc.kind === "scale") html = renderScale(sc);
+  else if (sc.kind === "sj") html = renderSJ(sc);
+  else if (sc.kind === "review") html = renderReview(sc);
+  else html = renderDone();
+
+  stage.innerHTML = '<section class="screen ' + (dir === "back" ? "enter-back" : "enter") + '">' + html + "</section>";
+  window.scrollTo(0, 0);
+
+  $("navTitle").textContent = sc.nav;
+  $("back").hidden = !(state.screen > 0 && sc.kind !== "done");
+
+  const pct = Math.round(answeredCount() / TOTAL_REQUIRED * 100);
+  $("rail").style.width = (sc.kind === "done" ? 100 : pct) + "%";
+  $("rail").style.setProperty("--hue", sc.kind === "scale" ? hue(sc.index) : "var(--accent)");
+  $("navCount").textContent = sc.kind === "welcome" ? "" : (sc.kind === "done" ? "100%" : pct + "%");
+
+  const btn = $("primary"), hint = $("barHint"), bar = $("bar");
+  bar.hidden = false;
+  if (sc.kind === "welcome"){
+    btn.textContent = "開始填答";
+    btn.disabled = !state.consent;
+    btn.className = "btn";
+    hint.textContent = state.consent ? "作答進度會自動保存在這台裝置" : "請先閱讀說明並開啟同意選項";
+  } else if (sc.kind === "review"){
+    btn.textContent = "送出問卷";
+    btn.disabled = false;
+    btn.className = "btn";
+    hint.textContent = "送出後將無法再修改";
+  } else if (sc.kind === "done"){
+    btn.textContent = "下載我的填答備份";
+    btn.disabled = false;
+    btn.className = "btn ghost";
+    hint.textContent = "僅供您自行留存，內容不含姓名與學號";
+  } else {
+    btn.textContent = "繼續";
+    btn.disabled = false;
+    btn.className = "btn";
+    hint.textContent = "作答進度會自動保存在這台裝置";
+  }
+
+  save();
+}
+
+function go(to, how){
+  dir = how || (to > state.screen ? "fwd" : "back");
+  state.screen = Math.max(0, Math.min(SCREENS.length - 1, to));
+  render();
+}
+
+function validate(){
+  const sc = SCREENS[state.screen];
+  let missingIds = [];
+
+  if (sc.kind === "bg"){
+    sc.groups.forEach(g => BG_GROUPS[g].qs.forEach(q => { if (!filled(q.id)) missingIds.push("q-" + q.id); }));
+  } else if (sc.kind === "scale"){
+    SCALES[sc.index].items.forEach(it => { if (state.items[it[0]] == null) missingIds.push("item-" + it[0]); });
+  }
+  if (!missingIds.length) return true;
+
+  missingIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("miss");
+  });
+  const first = document.getElementById(missingIds[0]);
+  if (first){
+    first.classList.add("shake");
+    setTimeout(() => first.classList.remove("shake"), 450);
+    const y = first.getBoundingClientRect().top + window.scrollY - 110;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  }
+  toast("還有 " + missingIds.length + " 題未作答");
+  return false;
+}
+
+/* ═══════════════════════════════════════════════
+   互動
+   ═══════════════════════════════════════════════ */
+$("stage").addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act;
+
+  if (act === "likert"){
+    const code = el.dataset.code, v = Number(el.dataset.v);
+    state.items[code] = v;
+    const seg = el.parentElement;
+    seg.dataset.value = String(v);
+    seg.style.setProperty("--i", v - 1);
+    seg.querySelectorAll(".seg-opt").forEach((b, k) => {
+      b.setAttribute("aria-checked", k + 1 === v ? "true" : "false");
+      b.tabIndex = k + 1 === v ? 0 : -1;
+    });
+    const ans = document.querySelector('[data-answer="' + code + '"]');
+    if (ans){ ans.textContent = v + "　" + LIKERT[v - 1]; ans.classList.add("on"); }
+    const item = document.getElementById("item-" + code);
+    if (item) item.classList.remove("miss");
+    refreshProgress();
+    save();
+  }
+
+  if (act === "opt"){
+    const q = el.dataset.q, v = el.dataset.v, multi = el.dataset.multi === "true";
+    if (multi){
+      const list = Array.isArray(state.bg[q]) ? state.bg[q].slice() : [];
+      const at = list.indexOf(v);
+      if (at >= 0) list.splice(at, 1); else list.push(v);
+      state.bg[q] = list;
+      el.setAttribute("aria-checked", at >= 0 ? "false" : "true");
+      const wrap = document.getElementById("q-" + q);
+      if (wrap) wrap.classList.remove("miss");
+      if (v === "其他"){
+        if (at >= 0) delete state.other[q];
+        save();
+        const keep = window.scrollY;
+        render();                       // 「其他」需要顯示或收起補充欄位
+        window.scrollTo(0, keep);
+        if (at < 0){
+          const box = document.getElementById("other-" + q);
+          if (box) box.focus();
+        }
+        return;
+      }
+      refreshProgress();
+      save();
+      return;
+    }
+    state.bg[q] = v;
+    el.parentElement.querySelectorAll('[data-act="opt"]').forEach(b => {
+      b.setAttribute("aria-checked", b === el ? "true" : "false");
+    });
+    const wrap = document.getElementById("q-" + q);
+    if (wrap) wrap.classList.remove("miss");
+    refreshProgress();
+    save();
+  }
+
+  if (act === "goto") go(Number(el.dataset.i), "back");
+});
+
+$("stage").addEventListener("input", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  if (el.dataset.act === "txt"){
+    state.bg[el.dataset.q] = el.value;
+    const wrap = document.getElementById("q-" + el.dataset.q);
+    if (wrap) wrap.classList.remove("miss");
+    refreshProgress();
+  } else if (el.dataset.act === "other"){
+    state.other[el.dataset.q] = el.value;
+  } else if (el.dataset.act === "sj"){
+    state.sj = el.value;
+    const c = $("sjCount");
+    if (c) c.textContent = el.value.length + " 字";
+  }
+  save();
+});
+
+/* 鍵盤：方向鍵在量表內移動，1–5 直接作答 */
+$("stage").addEventListener("keydown", e => {
+  const opt = e.target.closest(".seg-opt");
+  if (!opt) return;
+  const seg = opt.parentElement;
+  const opts = Array.from(seg.querySelectorAll(".seg-opt"));
+  const at = opts.indexOf(opt);
+  let next = -1;
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(opts.length - 1, at + 1);
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, at - 1);
+  else if (/^[1-5]$/.test(e.key)) next = Number(e.key) - 1;
+  if (next < 0) return;
+  e.preventDefault();
+  opts[next].focus();
+  opts[next].click();
+});
+
+$("stage").addEventListener("click", e => {
+  const sw = e.target.closest("#consentSwitch");
+  if (!sw) return;
+  state.consent = sw.getAttribute("aria-checked") !== "true";
+  sw.setAttribute("aria-checked", state.consent ? "true" : "false");
+  $("primary").disabled = !state.consent;
+  $("barHint").textContent = state.consent ? "作答進度會自動保存在這台裝置" : "請先閱讀說明並開啟同意選項";
+  save();
+});
+
+$("back").addEventListener("click", () => go(state.screen - 1, "back"));
+
+$("primary").addEventListener("click", () => {
+  const sc = SCREENS[state.screen];
+  if (sc.kind === "done") return downloadBackup();
+  if (sc.kind === "review") return submit();
+  if (sc.kind === "welcome" && !state.consent) return;
+  if (!validate()) return;
+  go(state.screen + 1, "fwd");
+});
+
+function refreshProgress(){
+  const sc = SCREENS[state.screen];
+  const pct = Math.round(answeredCount() / TOTAL_REQUIRED * 100);
+  $("rail").style.width = pct + "%";
+  if (sc.kind !== "welcome") $("navCount").textContent = pct + "%";
+}
+
+let scrollTick = false;
+window.addEventListener("scroll", () => {
+  if (scrollTick) return;
+  scrollTick = true;
+  requestAnimationFrame(() => {
+    $("nav").classList.toggle("is-scrolled", window.scrollY > 44);
+    scrollTick = false;
+  });
+}, { passive:true });
+
+setInterval(() => {
+  const now = Date.now();
+  if (now - lastTick < 60000) state.elapsed += (now - lastTick) / 1000;
+  lastTick = now;
+}, 5000);
+
+/* ═══════════════════════════════════════════════
+   送出
+   ═══════════════════════════════════════════════ */
+function buildPayload(){
+  const constructs = {};
+  SCALES.forEach(s => {
+    const vals = s.items.map(it => state.items[it[0]]).filter(v => v != null);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    constructs[s.code] = {
+      name: s.name, en: s.en, n: vals.length,
+      sum: sum, mean: vals.length ? Number((sum / vals.length).toFixed(3)) : null
+    };
+  });
+  const bg = {};
+  BG_IDS.forEach(id => {
+    bg[id] = state.bg[id] == null ? null : state.bg[id];
+    if (state.other[id]) bg[id + "_other"] = state.other[id];
+  });
+  return {
+    responseId: state.rid,
+    formTitle: FORM_TITLE,
+    formVersion: FORM_VERSION,
+    consent: state.consent,
+    startedAt: state.startedAt,
+    submittedAt: new Date().toISOString(),
+    durationSec: Math.round(state.elapsed),
+    background: bg,
+    items: Object.assign({}, state.items),
+    constructs: constructs,
+    scenarioSJ1: (state.sj || "").trim(),
+    completedItems: Object.keys(state.items).length,
+    totalItems: TOTAL_ITEMS
+  };
+}
+
+async function submit(){
+  if (busy) return;
+  const incomplete = BG_IDS.some(id => !filled(id)) || Object.keys(state.items).length < TOTAL_ITEMS;
+  if (incomplete){
+    toast("還有必答題未完成，請先補齊");
+    return;
+  }
+  busy = true;
+  const btn = $("primary");
+  btn.disabled = true;
+  btn.textContent = "送出中…";
+
+  const payload = buildPayload();
+  try{
+    const db = window.claude ? await window.claude.use("db") : null;
+    if (db){
+      await db.collection("responses").doc(state.rid).set(payload);
+      state.saved = "cloud";
+    } else {
+      state.saved = "local";
+    }
+  }catch(err){
+    busy = false;
+    btn.disabled = false;
+    btn.textContent = "送出問卷";
+    const code = err && err.code ? err.code : "unavailable";
+    if (code === "quota_exceeded") toast("儲存空間已滿，請聯絡計畫主持人");
+    else if (code === "not_granted" || code === "capability_disabled") toast("此裝置無法連上儲存服務，可改用下載備份");
+    else toast("送出失敗（" + code + "），您的作答已保留，請再試一次");
+    return;
+  }
+
+  state.finishedPayload = payload;
+  busy = false;
+  clearDraft();
+  go(SCREENS.length - 1, "fwd");
+}
+
+async function downloadBackup(){
+  const payload = state.finishedPayload || buildPayload();
+  const lines = [["欄位", "作答"]];
+  BG_IDS.forEach(id => {
+    const v = payload.background[id];
+    lines.push([id, Array.isArray(v) ? v.join("；") : (v == null ? "" : String(v))]);
+    if (payload.background[id + "_other"]) lines.push([id + "_其他", payload.background[id + "_other"]]);
+  });
+  SCALES.forEach(s => s.items.forEach(it => {
+    const v = payload.items[it[0]];
+    lines.push([it[0], v == null ? "" : String(v)]);
+  }));
+  lines.push(["SJ1", payload.scenarioSJ1]);
+  lines.push(["填答時間（秒）", String(payload.durationSec)]);
+  lines.push(["紀錄編號", payload.responseId]);
+
+  const csv = "﻿" + lines.map(r =>
+    r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(",")
+  ).join("\r\n");
+
+  const btn = $("primary");
+  try{
+    const downloads = window.claude ? await window.claude.use("downloads") : null;
+    if (!downloads){
+      btn.disabled = true;
+      btn.textContent = "此裝置無法下載檔案";
+      return;
+    }
+    await downloads.save({ filename: "行銷管理前測問卷_" + payload.responseId.slice(0, 8) + ".csv", data: csv });
+    btn.textContent = "已下載備份";
+  }catch(err){
+    const code = err && err.code ? err.code : "unavailable";
+    if (code === "declined") toast("已取消下載");
+    else toast("下載失敗（" + code + "）");
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   啟動
+   ═══════════════════════════════════════════════ */
+load();
+render();
+if (state.screen > 0 || Object.keys(state.items).length){
+  setTimeout(() => toast("已回到上次填答的進度"), 450);
+}
+})();
+</script>
