@@ -306,7 +306,7 @@ input,textarea{font:inherit;color:inherit}
 }
 .scenario .tag{
   display:inline-block;margin-bottom:8px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--hue);
+  font-size:12px;font-weight:500;letter-spacing:.12em;color:var(--hue);
 }
 
 /* ─── 檢查頁 ─── */
@@ -443,6 +443,8 @@ const CONTACT_EMAIL = "（請填入聯絡信箱）";   // ← 發放前務必填
 const SHOW_ITEM_CODES = false;               // true = 題目前顯示 IM1／TD1 等代碼
 const SHOW_CONSTRUCT_NAMES = false;          // true = 顯示「內在動機」等構面名稱
 
+const DURATION_TEXT = "15–20 分鐘";   // 與研究計畫說明頁一致
+
 const LIKERT = ["非常不同意", "不同意", "普通", "同意", "非常同意"];
 
 const CONSENT = [
@@ -451,7 +453,7 @@ const CONSENT = [
   "參與本調查完全出於自願，您可以隨時停止填答，不參與或中途退出均不會影響您的課程成績或與授課教師的關係。",
   "本研究為前後測設計，因此需要蒐集您的電子郵件，用途僅限於三項：將您期初與期末的填答配對、避免同一人重複填答，以及在您勾選時寄送一份填答副本給您。填答資料儲存於計畫主持人管理的 Google 試算表，僅研究團隊可存取；進行分析前會以編號取代電子郵件，個人資訊絕不對外揭露，僅供本計畫學術研究使用。研究成果若公開發表，不會出現任何可辨識個人身份的資料。",
   "若您對本研究有任何疑問，歡迎聯絡計畫主持人：林建江助理教授，電子郵件：" + CONTACT_EMAIL + "。",
-  "問卷填答約需 15 分鐘，感謝您撥冗填答！"
+  "問卷填答約需 " + DURATION_TEXT + "，感謝您撥冗填答！"
 ];
 
 /* ═══════════════════════════════════════════════
@@ -569,7 +571,9 @@ const SCREENS = [
 
 const TOTAL_ITEMS = SCALES.reduce((n, s) => n + s.items.length, 0);
 const BG_IDS = BG_GROUPS.flatMap(g => g.qs.map(q => q.id));
-const TOTAL_REQUIRED = TOTAL_ITEMS + BG_IDS.length + 1;   // +1 為電子郵件
+const BG_QS = BG_GROUPS.flatMap(g => g.qs);
+const TOTAL_QUESTIONS = TOTAL_ITEMS + BG_IDS.length;      // 55：文案與作答題數用
+const TOTAL_REQUIRED  = TOTAL_QUESTIONS + 1;              // 56：進度條分母，含電子郵件
 const STORE_KEY = "mkt-pretest-v3-draft";
 
 /* ═══════════════════════════════════════════════
@@ -635,10 +639,22 @@ const CHECK_SVG = '<svg class="check" viewBox="0 0 17 13" aria-hidden="true"><pa
 const CHEV_SVG = '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.2 1.2 6.6 6.5 1.2 11.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function answeredCount(){
-  let n = BG_IDS.filter(id => filled(id)).length;
-  n += Object.keys(state.items).length;
-  if (isEmail(state.email)) n += 1;
-  return n;
+  return questionCount() + (isEmail(state.email) ? 1 : 0);
+}
+/** 不含電子郵件的已答題數 */
+function questionCount(){
+  return BG_QS.filter(qDone).length + Object.keys(state.items).length;
+}
+/** 勾了「其他」就必須填說明，與 Google 表單的 showOtherOption 行為一致 */
+function qDone(q){
+  if (!filled(q.id)) return false;
+  return !otherPending(q);
+}
+function otherPending(q){
+  return !!q.other
+    && Array.isArray(state.bg[q.id])
+    && state.bg[q.id].indexOf("其他") >= 0
+    && !String(state.other[q.id] || "").trim();
 }
 function isEmail(v){
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || "").trim());
@@ -652,7 +668,7 @@ function scaleDone(i){
   return SCALES[i].items.every(it => state.items[it[0]] != null);
 }
 function bgGroupDone(g){
-  return BG_GROUPS[g].qs.every(q => filled(q.id));
+  return BG_GROUPS[g].qs.every(qDone);
 }
 function fmtDuration(sec){
   const m = Math.floor(sec / 60), s = Math.round(sec % 60);
@@ -677,7 +693,7 @@ function titleBlock(part, title, lede, hueVar){
 
 function renderWelcome(){
   const rows = [
-    ["約 15 分鐘", "共 " + TOTAL_REQUIRED + " 題，另有 1 題選填"],
+    ["約 " + DURATION_TEXT, "基本資料 " + BG_IDS.length + " 題 ＋ 量表 " + TOTAL_ITEMS + " 題，另有 1 題情境判斷（選填）"],
     ["去識別化保存", "僅蒐集電子郵件供前後測配對，分析時以編號取代"],
     ["隨時可退出", "不影響課程成績與師生關係"]
   ].map(r =>
@@ -809,7 +825,7 @@ function renderSJ(sc){
   const len = (state.sj || "").length;
   return '<div style="--hue:' + h + '">' +
     titleBlock(sc.part + "・選填", sc.title, "這題不計分、也可以留白。請以 2 至 4 句話描述你的處理方式。", h) +
-    '<div class="scenario"><span class="tag">SCENARIO</span><br>' + esc(SJ_PROMPT) + "</div>" +
+    '<div class="scenario"><span class="tag">情境</span><br>' + esc(SJ_PROMPT) + "</div>" +
     '<div class="group"><div class="card"><div class="field" style="padding-top:14px">' +
       '<textarea id="sj" data-act="sj" placeholder="我會先……" aria-label="情境判斷作答">' + esc(state.sj || "") + "</textarea>" +
       '<div class="field-hint"><span>選填，可略過</span><span class="count" id="sjCount">' + len + " 字</span></div>" +
@@ -824,7 +840,7 @@ function renderReview(sc){
     } else if (s.kind === "bg"){
       const done = s.groups.every(bgGroupDone);
       const total = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.length, 0);
-      const got = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.filter(q => filled(q.id)).length, 0);
+      const got = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.filter(qDone).length, 0);
       rows.push({ i, label:s.nav, done, text:got + " / " + total });
     } else if (s.kind === "scale"){
       const items = SCALES[s.index].items;
@@ -850,7 +866,7 @@ function renderReview(sc){
   return titleBlock(sc.part, sc.title, lede, "var(--h6)") +
     (missing === 0 ? "" : '<div class="notice"><span>未完成的段落無法送出，請先補齊必答題。</span></div>') +
     '<div class="group"><div class="card">' + list + "</div>" +
-      '<div class="group-footer">送出後，您的作答將以匿名形式儲存，僅供本計畫學術研究使用。</div></div>';
+      '<div class="group-footer">送出後，您的作答將以去識別化方式保存，分析前會以編號取代電子郵件，僅供本計畫學術研究使用。</div></div>';
 }
 
 function renderDone(){
@@ -873,7 +889,7 @@ function renderDone(){
     "</div>" +
     '<div class="group"><div class="card">' +
       statRow("電子郵件", state.email || "—") +
-      statRow("作答題數", answeredCount() + " / " + TOTAL_REQUIRED) +
+      statRow("作答題數", questionCount() + " / " + TOTAL_QUESTIONS) +
       statRow("情境判斷", (state.sj || "").trim() ? (state.sj.trim().length + " 字") : "略過") +
       statRow("填答時間", fmtDuration(state.elapsed)) +
       statRow("紀錄編號", state.rid.slice(0, 8)) +
@@ -969,10 +985,16 @@ function validate(){
   const sc = SCREENS[state.screen];
   let missingIds = [];
 
+  let otherOnly = [];
+
   if (sc.kind === "email"){
     if (!isEmail(state.email)) missingIds.push("q-email");
   } else if (sc.kind === "bg"){
-    sc.groups.forEach(g => BG_GROUPS[g].qs.forEach(q => { if (!filled(q.id)) missingIds.push("q-" + q.id); }));
+    sc.groups.forEach(g => BG_GROUPS[g].qs.forEach(q => {
+      if (qDone(q)) return;
+      missingIds.push("q-" + q.id);
+      if (otherPending(q)) otherOnly.push(q.id);
+    }));
   } else if (sc.kind === "scale"){
     SCALES[sc.index].items.forEach(it => { if (state.items[it[0]] == null) missingIds.push("item-" + it[0]); });
   }
@@ -989,9 +1011,15 @@ function validate(){
     const y = first.getBoundingClientRect().top + window.scrollY - 110;
     window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   }
-  toast(SCREENS[state.screen].kind === "email"
-    ? "請填寫有效的電子郵件"
-    : "還有 " + missingIds.length + " 題未作答");
+  if (sc.kind === "email"){
+    toast("請填寫有效的電子郵件");
+  } else if (otherOnly.length === missingIds.length){
+    toast("勾選「其他」後請填寫說明");
+    const box = document.getElementById("other-" + otherOnly[0]);
+    if (box) box.focus();
+  } else {
+    toast("還有 " + missingIds.length + " 題未作答");
+  }
   return false;
 }
 
@@ -1075,6 +1103,9 @@ $("stage").addEventListener("input", e => {
     refreshProgress();
   } else if (el.dataset.act === "other"){
     state.other[el.dataset.q] = el.value;
+    const wrap = document.getElementById("q-" + el.dataset.q);
+    if (wrap && el.value.trim()) wrap.classList.remove("miss");
+    refreshProgress();
   } else if (el.dataset.act === "sj"){
     state.sj = el.value;
     const c = $("sjCount");
@@ -1239,7 +1270,7 @@ async function submit(){
     go(1, "back");
     return;
   }
-  const incomplete = BG_IDS.some(id => !filled(id)) || Object.keys(state.items).length < TOTAL_ITEMS;
+  const incomplete = BG_QS.some(q => !qDone(q)) || Object.keys(state.items).length < TOTAL_ITEMS;
   if (incomplete){
     toast("還有必答題未完成，請先補齊");
     return;
