@@ -112,3 +112,13 @@ clasp deploy --description "v1"
 | 直接用瀏覽器開啟檔案 | 僅保存在本機，完成頁提供 CSV 下載備份 |
 
 三種情境都會即時把進度寫入瀏覽器 `localStorage`，關閉頁面後可接續填答。
+
+## 行動裝置
+
+多數填答者以手機作答，因此：
+
+- `index.html` 自帶 `charset` 與 `viewport` meta（`viewport-fit=cover`），
+  即使直接開啟檔案、不經 `doGet()` 的外殼也不會縮版。
+- 所有點擊目標在觸控裝置上不低於 Apple 建議的 44pt：量表選項 48px、返回鍵 45px、主要按鈕 56px。
+- 輸入欄位字級 17px（≥16px），避免 iOS Safari 聚焦時自動放大畫面。
+- 底部操作列與安全區域內距相容，iPhone 的Home Indicator 不會蓋住按鈕。

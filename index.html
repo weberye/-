@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>行銷管理課程前測問卷</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -389,7 +391,16 @@ input,textarea{font:inherit;color:inherit}
 @media (max-width:420px){
   .large-title{font-size:28px}
   .item-text{font-size:15.5px}
-  .seg-opt{font-size:14px;padding:8px 0}
+  .item{padding:15px 14px 11px}
+  .stage{padding-inline:16px}
+}
+
+/* 觸控裝置：點擊目標一律不低於 Apple 建議的 44pt */
+@media (pointer: coarse){
+  .seg-opt{padding:12px 0;font-size:16px}
+  .nav-back{padding:11px 8px}
+  .row{padding:15px 16px}
+  .switch-row{padding:16px}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
