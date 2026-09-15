@@ -194,7 +194,7 @@ input,textarea{font:inherit;color:inherit}
 .row[aria-checked="true"] .row-text{font-weight:500}
 
 .field{padding:6px 16px 12px}
-.field input[type="text"],.field textarea{
+.field input,.field textarea{
   width:100%;background:var(--fill-2);border:1px solid var(--sep);
   border-radius:10px;padding:11px 13px;resize:vertical;
   line-height:1.6;transition:border-color .16s ease, background-color .16s ease;
@@ -437,7 +437,8 @@ const LIKERT = ["非常不同意", "不同意", "普通", "同意", "非常同�
 const CONSENT = [
   "親愛的同學，您好：",
   "本問卷為教育部教學實踐研究計畫之基線調查，由世新大學企業管理學系林建江助理教授主持。本調查目的在了解您在課程開始前的學習狀況與生成式 AI 工具使用經驗，作為課程設計改善的參考依據。",
-  "參與本調查完全出於自願，您可以隨時停止填答，不參與或中途退出均不會影響您的課程成績或與授課教師的關係。所有填答資料將以匿名方式保存與分析，個人資訊絕不對外揭露，僅供本計畫學術研究使用。研究成果若公開發表，亦不會出現任何可辨識個人身份的資料。",
+  "參與本調查完全出於自願，您可以隨時停止填答，不參與或中途退出均不會影響您的課程成績或與授課教師的關係。",
+  "本研究為前後測設計，因此需要蒐集您的電子郵件，用途僅限於三項：將您期初與期末的填答配對、避免同一人重複填答，以及在您勾選時寄送一份填答副本給您。填答資料儲存於計畫主持人管理的 Google 試算表，僅研究團隊可存取；進行分析前會以編號取代電子郵件，個人資訊絕不對外揭露，僅供本計畫學術研究使用。研究成果若公開發表，不會出現任何可辨識個人身份的資料。",
   "若您對本研究有任何疑問，歡迎聯絡計畫主持人：林建江助理教授，電子郵件：" + CONTACT_EMAIL + "。",
   "問卷填答約需 15 分鐘，感謝您撥冗填答！"
 ];
@@ -545,6 +546,7 @@ const SJ_PROMPT = "您正在為一個本地飲料品牌撰寫市場競爭分析�
    ═══════════════════════════════════════════════ */
 const SCREENS = [
   { kind:"welcome", nav:FORM_TITLE },
+  { kind:"email", nav:"電子郵件", part:"開始之前", title:"請先留下電子郵件" },
   { kind:"bg", groups:[0,1], nav:"基本背景資料", part:"第一部分", title:"關於你" },
   { kind:"bg", groups:[2],   nav:"課程修習狀況", part:"第一部分", title:"行銷課程經驗" },
   { kind:"bg", groups:[3],   nav:"GenAI 使用經驗", part:"第一部分", title:"你與 GenAI" },
@@ -556,7 +558,7 @@ const SCREENS = [
 
 const TOTAL_ITEMS = SCALES.reduce((n, s) => n + s.items.length, 0);
 const BG_IDS = BG_GROUPS.flatMap(g => g.qs.map(q => q.id));
-const TOTAL_REQUIRED = TOTAL_ITEMS + BG_IDS.length;
+const TOTAL_REQUIRED = TOTAL_ITEMS + BG_IDS.length + 1;   // +1 為電子郵件
 const STORE_KEY = "mkt-pretest-v3-draft";
 
 /* ═══════════════════════════════════════════════
@@ -565,6 +567,8 @@ const STORE_KEY = "mkt-pretest-v3-draft";
 const blank = () => ({
   rid: newId(),
   consent: false,
+  email: "",
+  emailCopy: true,
   bg: {},
   other: {},
   items: {},
@@ -579,6 +583,14 @@ let dir = "fwd";
 let lastTick = Date.now();
 let toastTimer = 0;
 let busy = false;
+
+/* 三種執行環境：Apps Script 網頁應用程式 → Artifact → 單機預覽 */
+const HAS_GAS = typeof google !== "undefined" && google.script && google.script.run;
+function gasCall(fn, arg){
+  return new Promise((resolve, reject) => {
+    google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](arg);
+  });
+}
 
 function newId(){
   if (self.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -614,7 +626,11 @@ const CHEV_SVG = '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path 
 function answeredCount(){
   let n = BG_IDS.filter(id => filled(id)).length;
   n += Object.keys(state.items).length;
+  if (isEmail(state.email)) n += 1;
   return n;
+}
+function isEmail(v){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || "").trim());
 }
 function filled(id){
   const v = state.bg[id];
@@ -651,7 +667,7 @@ function titleBlock(part, title, lede, hueVar){
 function renderWelcome(){
   const rows = [
     ["約 15 分鐘", "共 " + TOTAL_REQUIRED + " 題，另有 1 題選填"],
-    ["匿名填答", "不會記錄姓名、學號或電子郵件"],
+    ["去識別化保存", "僅蒐集電子郵件供前後測配對，分析時以編號取代"],
     ["隨時可退出", "不影響課程成績與師生關係"]
   ].map(r =>
     '<div class="row" style="cursor:default"><div class="row-text">' + esc(r[0]) +
@@ -669,6 +685,22 @@ function renderWelcome(){
       '<div class="switch-row"><div class="row-text">我已閱讀上述說明，並同意參與本研究</div>' +
       '<button class="switch" id="consentSwitch" role="switch" aria-checked="' + (state.consent ? "true" : "false") +
       '" aria-label="同意參與本研究"><span class="knob"></span></button></div>' +
+    '</div></div>';
+}
+
+function renderEmail(sc){
+  return titleBlock(sc.part, sc.title,
+      "本計畫為前後測設計，需要以電子郵件把您<strong>期初與期末</strong>的填答配對起來。信箱只用於配對、避免重複填答與寄送副本，<strong>分析前會以編號取代</strong>。", "var(--h1)") +
+    '<div class="group" id="q-email"><div class="group-label">電子郵件</div><div class="card">' +
+      '<div class="field" style="padding-top:12px">' +
+      '<input type="email" inputmode="email" autocomplete="email" spellcheck="false" id="email" data-act="email" value="' +
+      esc(state.email || "") + '" placeholder="you@example.com" aria-label="電子郵件"></div>' +
+    '</div><div class="group-footer">請填寫您平常會收信的信箱，建議使用學校信箱，期末問卷請使用同一個。</div></div>' +
+    '<div class="group"><div class="card">' +
+      '<div class="switch-row"><div class="row-text">填答完成後寄一份副本給我' +
+        '<div class="row-note">寄到上面這個信箱，僅含您自己的作答</div></div>' +
+      '<button class="switch" id="copySwitch" role="switch" aria-checked="' + (state.emailCopy ? "true" : "false") +
+      '" aria-label="寄送填答副本"><span class="knob"></span></button></div>' +
     '</div></div>';
 }
 
@@ -776,7 +808,9 @@ function renderSJ(sc){
 function renderReview(sc){
   const rows = [];
   SCREENS.forEach((s, i) => {
-    if (s.kind === "bg"){
+    if (s.kind === "email"){
+      rows.push({ i, label:"電子郵件", done:isEmail(state.email), text:isEmail(state.email) ? "已填寫" : "未填寫" });
+    } else if (s.kind === "bg"){
       const done = s.groups.every(bgGroupDone);
       const total = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.length, 0);
       const got = s.groups.reduce((n, g) => n + BG_GROUPS[g].qs.filter(q => filled(q.id)).length, 0);
@@ -809,12 +843,17 @@ function renderReview(sc){
 }
 
 function renderDone(){
-  const mode = state.saved === "cloud"
-    ? "已送出並儲存"
-    : "已在這台裝置完成";
-  const note = state.saved === "cloud"
-    ? "感謝您撥冗填答。您的填答已匿名送出，不會與姓名或學號連結。"
-    : "本次填答未能連上儲存服務，資料僅保留在這台裝置。請下載備份，或改由表單連結重新送出。";
+  const stored = state.saved === "sheet" || state.saved === "cloud";
+  const mode = stored ? "已送出並儲存" : "已在這台裝置完成";
+  let note;
+  if (state.saved === "sheet"){
+    note = "感謝您撥冗填答，您的作答已寫入計畫的資料表。" +
+      (state.copySent ? "填答副本已寄至您的信箱。" : (state.emailCopy ? "副本寄送未成功，但作答已完整記錄。" : ""));
+  } else if (state.saved === "cloud"){
+    note = "感謝您撥冗填答。您的作答已送出，分析時會以編號取代電子郵件。";
+  } else {
+    note = "本次填答未能連上儲存服務，資料僅保留在這台裝置。請下載備份，或改由表單連結重新送出。";
+  }
 
   return '<div class="finish">' +
       '<svg class="tick" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33"/><path d="M22 37.5 32 47 50 26.5"/></svg>' +
@@ -822,6 +861,7 @@ function renderDone(){
       '<p class="lede" style="margin-bottom:26px">' + esc(note) + "</p>" +
     "</div>" +
     '<div class="group"><div class="card">' +
+      statRow("電子郵件", state.email || "—") +
       statRow("作答題數", answeredCount() + " / " + TOTAL_REQUIRED) +
       statRow("情境判斷", (state.sj || "").trim() ? (state.sj.trim().length + " 字") : "略過") +
       statRow("填答時間", fmtDuration(state.elapsed)) +
@@ -841,6 +881,7 @@ function render(){
   let html = "";
 
   if (sc.kind === "welcome") html = renderWelcome();
+  else if (sc.kind === "email") html = renderEmail(sc);
   else if (sc.kind === "bg") html = renderBG(sc);
   else if (sc.kind === "scale") html = renderScale(sc);
   else if (sc.kind === "sj") html = renderSJ(sc);
@@ -860,6 +901,7 @@ function render(){
 
   const btn = $("primary"), hint = $("barHint"), bar = $("bar");
   bar.hidden = false;
+  btn.hidden = false;
   if (sc.kind === "welcome"){
     btn.textContent = "開始填答";
     btn.disabled = !state.consent;
@@ -871,10 +913,15 @@ function render(){
     btn.className = "btn";
     hint.textContent = "送出後將無法再修改";
   } else if (sc.kind === "done"){
-    btn.textContent = "下載我的填答備份";
-    btn.disabled = false;
-    btn.className = "btn ghost";
-    hint.textContent = "僅供您自行留存，內容不含姓名與學號";
+    if (HAS_GAS){
+      btn.hidden = true;
+      hint.textContent = state.copySent ? "副本已寄至 " + state.email : "您可以關閉此頁面了";
+    } else {
+      btn.textContent = "下載我的填答備份";
+      btn.disabled = false;
+      btn.className = "btn ghost";
+      hint.textContent = "僅供您自行留存，供您與研究團隊核對之用";
+    }
   } else {
     btn.textContent = "繼續";
     btn.disabled = false;
@@ -895,7 +942,9 @@ function validate(){
   const sc = SCREENS[state.screen];
   let missingIds = [];
 
-  if (sc.kind === "bg"){
+  if (sc.kind === "email"){
+    if (!isEmail(state.email)) missingIds.push("q-email");
+  } else if (sc.kind === "bg"){
     sc.groups.forEach(g => BG_GROUPS[g].qs.forEach(q => { if (!filled(q.id)) missingIds.push("q-" + q.id); }));
   } else if (sc.kind === "scale"){
     SCALES[sc.index].items.forEach(it => { if (state.items[it[0]] == null) missingIds.push("item-" + it[0]); });
@@ -913,7 +962,9 @@ function validate(){
     const y = first.getBoundingClientRect().top + window.scrollY - 110;
     window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   }
-  toast("還有 " + missingIds.length + " 題未作答");
+  toast(SCREENS[state.screen].kind === "email"
+    ? "請填寫有效的電子郵件"
+    : "還有 " + missingIds.length + " 題未作答");
   return false;
 }
 
@@ -990,6 +1041,11 @@ $("stage").addEventListener("input", e => {
     const wrap = document.getElementById("q-" + el.dataset.q);
     if (wrap) wrap.classList.remove("miss");
     refreshProgress();
+  } else if (el.dataset.act === "email"){
+    state.email = el.value.trim();
+    const wrap = document.getElementById("q-email");
+    if (wrap && isEmail(state.email)) wrap.classList.remove("miss");
+    refreshProgress();
   } else if (el.dataset.act === "other"){
     state.other[el.dataset.q] = el.value;
   } else if (el.dataset.act === "sj"){
@@ -1018,12 +1074,17 @@ $("stage").addEventListener("keydown", e => {
 });
 
 $("stage").addEventListener("click", e => {
-  const sw = e.target.closest("#consentSwitch");
+  const sw = e.target.closest(".switch");
   if (!sw) return;
-  state.consent = sw.getAttribute("aria-checked") !== "true";
-  sw.setAttribute("aria-checked", state.consent ? "true" : "false");
-  $("primary").disabled = !state.consent;
-  $("barHint").textContent = state.consent ? "作答進度會自動保存在這台裝置" : "請先閱讀說明並開啟同意選項";
+  const on = sw.getAttribute("aria-checked") !== "true";
+  sw.setAttribute("aria-checked", on ? "true" : "false");
+  if (sw.id === "consentSwitch"){
+    state.consent = on;
+    $("primary").disabled = !on;
+    $("barHint").textContent = on ? "作答進度會自動保存在這台裝置" : "請先閱讀說明並開啟同意選項";
+  } else if (sw.id === "copySwitch"){
+    state.emailCopy = on;
+  }
   save();
 });
 
@@ -1081,6 +1142,8 @@ function buildPayload(){
   });
   return {
     responseId: state.rid,
+    email: state.email,
+    emailCopy: !!state.emailCopy,
     formTitle: FORM_TITLE,
     formVersion: FORM_VERSION,
     consent: state.consent,
@@ -1096,8 +1159,59 @@ function buildPayload(){
   };
 }
 
+function buildRecord(){
+  const cols = [], values = {}, labels = {};
+  const put = (k, v, label) => { cols.push(k); values[k] = v; if (label) labels[k] = label; };
+
+  put("填答時間", new Date().toISOString());
+  put("紀錄編號", state.rid);
+  put("電子郵件", state.email);
+  put("同意參與", state.consent ? "是" : "否");
+  put("開始時間", state.startedAt);
+  put("填答秒數", Math.round(state.elapsed));
+
+  BG_GROUPS.forEach(g => g.qs.forEach(q => {
+    const v = state.bg[q.id];
+    put(q.id, Array.isArray(v) ? v.join("；") : (v == null ? "" : v), q.title);
+    if (q.other) put(q.id + "_其他", state.other[q.id] || "", q.title + "（其他）");
+  }));
+  SCALES.forEach(s => s.items.forEach(it => {
+    put(it[0], state.items[it[0]] == null ? "" : state.items[it[0]], it[1]);
+  }));
+  SCALES.forEach(s => {
+    const vals = s.items.map(it => state.items[it[0]]).filter(v => v != null);
+    const mean = vals.length ? Number((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(3)) : "";
+    put(s.code + "_平均", mean, s.name + "（" + s.en + "）構面平均");
+  });
+  put("SJ1", (state.sj || "").trim(), "情境判斷：" + SJ_PROMPT);
+
+  return {
+    responseId: state.rid,
+    email: state.email,
+    sendCopy: !!state.emailCopy,
+    formTitle: FORM_TITLE,
+    formVersion: FORM_VERSION,
+    columns: cols,
+    values: values,
+    labels: labels
+  };
+}
+
+const SUBMIT_ERRORS = {
+  duplicate: "這個信箱已經有一筆填答紀錄了",
+  bad_email: "電子郵件格式不正確，請回上一步修正",
+  busy: "系統忙碌中，請稍候再送出一次",
+  bad_request: "送出的資料不完整，請重新整理頁面再試",
+  quota_exceeded: "儲存空間已滿，請聯絡計畫主持人"
+};
+
 async function submit(){
   if (busy) return;
+  if (!isEmail(state.email)){
+    toast("請先填寫電子郵件");
+    go(1, "back");
+    return;
+  }
   const incomplete = BG_IDS.some(id => !filled(id)) || Object.keys(state.items).length < TOTAL_ITEMS;
   if (incomplete){
     toast("還有必答題未完成，請先補齊");
@@ -1109,22 +1223,47 @@ async function submit(){
   btn.textContent = "送出中…";
 
   const payload = buildPayload();
-  try{
-    const db = window.claude ? await window.claude.use("db") : null;
-    if (db){
-      await db.collection("responses").doc(state.rid).set(payload);
-      state.saved = "cloud";
-    } else {
-      state.saved = "local";
-    }
-  }catch(err){
+  const fail = msg => {
     busy = false;
     btn.disabled = false;
     btn.textContent = "送出問卷";
-    const code = err && err.code ? err.code : "unavailable";
-    if (code === "quota_exceeded") toast("儲存空間已滿，請聯絡計畫主持人");
-    else if (code === "not_granted" || code === "capability_disabled") toast("此裝置無法連上儲存服務，可改用下載備份");
-    else toast("送出失敗（" + code + "），您的作答已保留，請再試一次");
+    toast(msg);
+  };
+
+  try{
+    if (HAS_GAS){
+      const res = await gasCall("submitResponse", buildRecord());
+      if (!res || !res.ok){
+        const code = res && res.code ? res.code : "server_error";
+        if (code === "duplicate"){
+          fail(SUBMIT_ERRORS.duplicate);
+          go(1, "back");
+          return;
+        }
+        if (code === "bad_email"){
+          fail(SUBMIT_ERRORS.bad_email);
+          go(1, "back");
+          return;
+        }
+        fail(SUBMIT_ERRORS[code] || "送出失敗，您的作答已保留，請再試一次");
+        return;
+      }
+      state.saved = "sheet";
+      state.copySent = !!res.copySent;
+    } else {
+      const db = window.claude ? await window.claude.use("db") : null;
+      if (db){
+        await db.collection("responses").doc(state.rid).set(payload);
+        state.saved = "cloud";
+      } else {
+        state.saved = "local";
+      }
+    }
+  }catch(err){
+    const code = err && err.code ? err.code : "";
+    if (code === "quota_exceeded") fail(SUBMIT_ERRORS.quota_exceeded);
+    else if (code === "not_granted" || code === "capability_disabled") fail("此裝置無法連上儲存服務，可改用下載備份");
+    else fail("送出失敗，網路可能不穩定。您的作答已保留，請再試一次");
     return;
   }
 
@@ -1137,6 +1276,7 @@ async function submit(){
 async function downloadBackup(){
   const payload = state.finishedPayload || buildPayload();
   const lines = [["欄位", "作答"]];
+  lines.push(["電子郵件", state.email || ""]);
   BG_IDS.forEach(id => {
     const v = payload.background[id];
     lines.push([id, Array.isArray(v) ? v.join("；") : (v == null ? "" : String(v))]);
