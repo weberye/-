@@ -891,6 +891,8 @@ function render(){
   stage.innerHTML = '<section class="screen ' + (dir === "back" ? "enter-back" : "enter") + '">' + html + "</section>";
   window.scrollTo(0, 0);
 
+  if (sc.kind === "email" && HAS_GAS && !state.email) prefillEmail();
+
   $("navTitle").textContent = sc.nav;
   $("back").hidden = !(state.screen > 0 && sc.kind !== "done");
 
@@ -930,6 +932,20 @@ function render(){
   }
 
   save();
+}
+
+let prefillTried = false;
+function prefillEmail(){
+  if (prefillTried) return;
+  prefillTried = true;
+  gasCall("getPrefill").then(res => {
+    const box = document.getElementById("email");
+    if (!res || !res.email || !box || box.value) return;
+    box.value = res.email;
+    state.email = res.email;
+    refreshProgress();
+    save();
+  }).catch(() => { /* 匿名部署取不到帳號，維持手動填寫 */ });
 }
 
 function go(to, how){

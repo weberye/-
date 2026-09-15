@@ -8,6 +8,8 @@
 | `index.html` | 互動式網頁問卷。單檔、無建置流程，採 Apple Human Interface Guidelines 設計語言 |
 | `Code.gs` | Google Apps Script 後端：提供網頁、把作答寫入 Google 試算表、寄送填答副本 |
 | `GoogleForm.gs` | 原始的 Google 表單自動生成腳本（題庫來源，可保留作為備援收案管道） |
+| `appsscript.json` | Apps Script 專案資訊清單：時區、OAuth 範圍、網頁應用程式部署設定 |
+| `.clasp.json.example` | 用 clasp 命令列部署時的設定範本 |
 
 ## 部署到 Google Apps Script
 
@@ -22,6 +24,24 @@
    - 執行身分：**我**
    - 誰可以存取：**任何人**
 7. 取得的網址即為發給學生的問卷連結。之後每次改動都要按「部署 → 管理部署作業 → 編輯 → 版本：新版本」才會生效。
+
+> **注意**：`GoogleForm.gs` 請放在**另一個** Apps Script 專案。同一專案內所有 `.gs` 共用一個全域範圍，
+> 而它與 `Code.gs` 都宣告了 `FORM_TITLE` 與 `CONTACT_EMAIL`，放在一起會互相覆蓋。
+
+### 或用 clasp 命令列部署
+
+專案已附 `appsscript.json` 與 `.claspignore`（後者會排除 `GoogleForm.gs`）：
+
+```bash
+npm i -g @google/clasp
+clasp login
+clasp create --type webapp --title "行銷管理前測問卷"   # 或 clasp clone <既有專案 ID>
+cp .clasp.json.example .clasp.json && ${EDITOR:-vi} .clasp.json   # 填入 scriptId
+clasp push
+clasp deploy --description "v1"
+```
+
+`clasp push` 時 `index.html` 會直接對應到 Apps Script 專案裡的 `index` HTML 檔，不需改名。
 
 ### 試算表結構
 
@@ -42,6 +62,16 @@
 | `CONTACT_EMAIL` | 佔位字串 | 請與 `index.html` 內的同名設定一併填入真實信箱 |
 
 維護用函式：`setup()` 初始化、`stats()` 查看收案數與平均填答時間、`resetResponses()` 清空作答（保留標題列）。
+
+## 發放前檢查清單
+
+- [ ] `Code.gs` 與 `index.html` 兩處的 `CONTACT_EMAIL` 都已填入真實信箱
+- [ ] `SPREADSHEET_ID` 已填（或確認是繫結式腳本）
+- [ ] 執行過 `setup()`，試算表已出現「填答資料」工作表
+- [ ] 自己先完整填一次，確認試算表有寫入、副本信件有收到
+- [ ] 確認 `ALLOW_RESUBMIT` 設定符合需求（`false` 表示一個信箱只能填一次）
+- [ ] 部署設定為「執行身分：我／誰可以存取：任何人」，並用**無痕視窗**測試連結可開啟
+- [ ] 知情同意書的去識別化說明已送 IRB 備查
 
 ## 題目結構
 

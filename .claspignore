@@ -1,0 +1,8 @@
+# 表單生成腳本屬於另一個專案，不要推上網頁版專案
+# （兩者都宣告 FORM_TITLE／CONTACT_EMAIL，放在一起會互相覆蓋）
+GoogleForm.gs
+
+README.md
+.clasp.json.example
+.claspignore
+.git/**
