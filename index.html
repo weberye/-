@@ -39,6 +39,8 @@
 
   --spring:cubic-bezier(.32,.72,0,1);
   --radius:14px;
+  --col:680px;        /* 內容欄最大寬度 */
+  --sidebar:264px;    /* 桌機側邊欄寬度 */
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -112,7 +114,7 @@ input,textarea{font:inherit;color:inherit}
   backdrop-filter:saturate(180%) blur(20px);
 }
 .nav-inner{
-  max-width:680px;margin:0 auto;
+  max-width:var(--col);margin:0 auto;
   height:48px;padding:0 8px;
   display:grid;grid-template-columns:96px 1fr 96px;align-items:center;
 }
@@ -142,7 +144,7 @@ input,textarea{font:inherit;color:inherit}
 }
 
 /* ─── Screen 版面 ─── */
-.stage{max-width:680px;margin:0 auto;padding:0 20px 140px}
+.stage{max-width:var(--col);margin:0 auto;padding:0 20px 140px}
 .screen{padding-top:20px}
 .screen.enter{animation:push .42s var(--spring) both}
 .screen.enter-back{animation:pop .42s var(--spring) both}
@@ -353,6 +355,9 @@ input,textarea{font:inherit;color:inherit}
 @media (min-width:600px){
   .bar-inner{max-width:420px}
 }
+@media (min-width:760px){
+  :root{--col:720px}
+}
 .btn{
   width:100%;border:0;border-radius:12px;padding:15px 20px;
   font-size:17px;font-weight:600;cursor:pointer;
@@ -364,6 +369,65 @@ input,textarea{font:inherit;color:inherit}
 .btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .btn.ghost{background:var(--fill);color:var(--accent)}
 .bar-hint{text-align:center;font-size:12px;color:var(--ink-3)}
+
+/* ─── 桌機側邊欄（≥1024px 才出現） ─── */
+.sidebar{display:none}
+@media (min-width:1024px){
+  body{padding-inline-start:var(--sidebar)}
+  .bar{padding-inline-start:calc(var(--sidebar) + 20px)}
+  .sidebar{
+    display:flex;flex-direction:column;gap:22px;
+    position:fixed;top:0;bottom:0;inset-inline-start:0;width:var(--sidebar);
+    padding:calc(26px + env(safe-area-inset-top,0px)) 22px calc(26px + env(safe-area-inset-bottom,0px));
+    background:var(--surface);border-inline-end:1px solid var(--sep);
+    overflow-y:auto;z-index:45;
+  }
+  /* 每格選項已標示語意，圖例與選後標籤即可省略 */
+  .legend{display:none}
+  .item-answer{display:none}
+  .seg-opt{padding:9px 0 7px;line-height:1.2}
+  .seg-opt::after{
+    content:attr(data-label);display:block;margin-top:3px;
+    font-family:var(--font);font-size:11px;font-weight:400;letter-spacing:0;opacity:.65;
+  }
+  .toast{inset-inline-start:calc(50% + var(--sidebar) / 2)}
+}
+.rail-title{font-size:13px;font-weight:600;line-height:1.5;color:var(--ink-2)}
+.rail-pct{
+  font-family:var(--mono);font-size:34px;font-weight:500;letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;line-height:1;margin:14px 0 8px;
+}
+.rail-pct span{font-size:15px;color:var(--ink-3);margin-inline-start:2px}
+.rail-track{height:4px;border-radius:2px;background:var(--fill);overflow:hidden}
+.rail-track i{display:block;height:100%;background:var(--accent);transition:width .5s var(--spring)}
+.rail-sub{margin-top:8px;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.step{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:start;
+  padding:7px 9px;border:0;border-radius:8px;background:none;
+  font-size:13px;color:var(--ink-2);cursor:pointer;
+  transition:background-color .15s ease;
+}
+.step:hover:not(:disabled){background:var(--fill-2)}
+.step:disabled{cursor:default}
+.step-dot{
+  width:9px;height:9px;flex:none;border-radius:50%;
+  border:1.5px solid var(--ink-3);opacity:.5;
+}
+.step.is-done .step-dot{background:#34C759;border-color:#34C759;opacity:1}
+.step.is-current{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.step.is-current .step-dot{background:var(--accent);border-color:var(--accent);opacity:1}
+.step-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ─── 橫放手機／矮視窗 ─── */
+@media (max-height:520px) and (orientation:landscape){
+  .screen{padding-top:12px}
+  .large-title{font-size:23px}
+  .lede{margin-bottom:16px}
+  .bar{padding-block:8px}
+  .bar-hint{display:none}
+  .btn{padding:11px 20px}
+}
 
 /* ─── Toast ─── */
 .toast{
@@ -406,6 +470,8 @@ input,textarea{font:inherit;color:inherit}
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
 </style>
+
+<aside class="sidebar" id="sidebar" aria-label="填答進度"></aside>
 
 <header class="nav" id="nav">
   <div class="nav-inner">
@@ -590,7 +656,8 @@ const blank = () => ({
   sj: "",
   startedAt: new Date().toISOString(),
   elapsed: 0,
-  screen: 0
+  screen: 0,
+  maxScreen: 0
 });
 
 let state = blank();
@@ -805,7 +872,7 @@ function renderScale(sc){
         LIKERT.map((lab, k) =>
           '<button class="seg-opt" role="radio" aria-checked="' + (v === k + 1 ? "true" : "false") +
           '" aria-label="' + (k + 1) + " " + esc(lab) + '" tabindex="' + ((v ? v === k + 1 : k === 0) ? "0" : "-1") +
-          '" data-act="likert" data-code="' + code + '" data-v="' + (k + 1) + '">' + (k + 1) + "</button>"
+          '" data-label="' + esc(lab) + '" data-act="likert" data-code="' + code + '" data-v="' + (k + 1) + '">' + (k + 1) + "</button>"
         ).join("") +
       "</div>" +
       '<div class="item-answer' + (v ? " on" : "") + '" data-answer="' + code + '">' + (v ? esc(v + "　" + LIKERT[v - 1]) : "") + "</div>" +
@@ -867,6 +934,49 @@ function renderReview(sc){
     (missing === 0 ? "" : '<div class="notice"><span>未完成的段落無法送出，請先補齊必答題。</span></div>') +
     '<div class="group"><div class="card">' + list + "</div>" +
       '<div class="group-footer">送出後，您的作答將以去識別化方式保存，分析前會以編號取代電子郵件，僅供本計畫學術研究使用。</div></div>';
+}
+
+/** 側邊欄段落清單；僅 ≥1024px 顯示，行動版整塊 display:none */
+function railSteps(){
+  return SCREENS.map((sc, i) => {
+    let label, done = false;
+    if (sc.kind === "welcome"){ label = "知情同意"; done = state.consent; }
+    else if (sc.kind === "email"){ label = "電子郵件"; done = isEmail(state.email); }
+    else if (sc.kind === "bg"){ label = sc.nav; done = sc.groups.every(bgGroupDone); }
+    else if (sc.kind === "scale"){
+      label = "量表 " + String(sc.index + 1).padStart(2, "0") +
+        (SHOW_CONSTRUCT_NAMES ? "　" + SCALES[sc.index].name : "");
+      done = scaleDone(sc.index);
+    }
+    else if (sc.kind === "sj"){ label = "情境判斷（選填）"; done = (state.maxScreen || 0) > i; }
+    else if (sc.kind === "review"){ label = "檢查與送出"; done = false; }
+    else { label = "完成"; done = !!state.saved; }
+    return { i, label, done };
+  });
+}
+
+function renderRail(){
+  const el = $("sidebar");
+  if (!el) return;
+  const cur = state.screen;
+  const finished = SCREENS[cur].kind === "done";
+  const pct = finished ? 100 : Math.round(answeredCount() / TOTAL_REQUIRED * 100);
+
+  const steps = railSteps().map(st => {
+    const cls = st.i === cur ? "is-current" : (st.done ? "is-done" : "is-todo");
+    const can = !finished && st.i !== cur && st.i <= (state.maxScreen || 0);
+    return '<li><button class="step ' + cls + '" ' +
+      (can ? 'data-act="goto" data-i="' + st.i + '"' : "disabled") +
+      '><span class="step-dot" aria-hidden="true"></span>' +
+      '<span class="step-label">' + esc(st.label) + "</span></button></li>";
+  }).join("");
+
+  el.innerHTML =
+    '<div><div class="rail-title">' + esc(FORM_TITLE) + "</div>" +
+      '<div class="rail-pct">' + pct + "<span>%</span></div>" +
+      '<div class="rail-track"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="rail-sub">已作答 ' + questionCount() + " / " + TOTAL_QUESTIONS + " 題</div></div>" +
+    '<ol class="steps">' + steps + "</ol>";
 }
 
 function renderDone(){
@@ -958,6 +1068,7 @@ function render(){
     hint.textContent = "作答進度會自動保存在這台裝置";
   }
 
+  renderRail();
   save();
 }
 
@@ -978,6 +1089,7 @@ function prefillEmail(){
 function go(to, how){
   dir = how || (to > state.screen ? "fwd" : "back");
   state.screen = Math.max(0, Math.min(SCREENS.length - 1, to));
+  state.maxScreen = Math.max(state.maxScreen || 0, state.screen);
   render();
 }
 
@@ -1146,6 +1258,11 @@ $("stage").addEventListener("click", e => {
   save();
 });
 
+$("sidebar").addEventListener("click", e => {
+  const el = e.target.closest('[data-act="goto"]');
+  if (el) go(Number(el.dataset.i));
+});
+
 $("back").addEventListener("click", () => go(state.screen - 1, "back"));
 
 $("primary").addEventListener("click", () => {
@@ -1162,6 +1279,7 @@ function refreshProgress(){
   const pct = Math.round(answeredCount() / TOTAL_REQUIRED * 100);
   $("rail").style.width = pct + "%";
   if (sc.kind !== "welcome") $("navCount").textContent = pct + "%";
+  renderRail();
 }
 
 let scrollTick = false;
