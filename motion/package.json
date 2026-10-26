@@ -1,0 +1,25 @@
+{
+  "name": "island-table-motion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "島嶼食堂 ISLAND TABLE 期中提案 motion graphics（Remotion）",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:m1": "remotion render Motion1 out/motion1.mp4",
+    "render:m2": "remotion render Motion2 out/motion2.mp4",
+    "render": "npm run render:m1 && npm run render:m2",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans-tc": "5.2.6",
+    "@fontsource/noto-serif-tc": "5.2.6",
+    "@remotion/cli": "4.0.535",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

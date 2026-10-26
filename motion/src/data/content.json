@@ -1,0 +1,93 @@
+{
+  "_說明": "所有畫面上的文字、數字、來源、秒數都在這個檔案。只改引號裡的內容與數字即可，不要刪掉逗號或括號。詳見 README.md。",
+
+  "brand": {
+    "name": "島嶼食堂 ISLAND TABLE",
+    "colors": {
+      "bg": "#F4EEE4",
+      "primary": "#C8734F",
+      "ink": "#2A221D",
+      "muted": "#8C8178",
+      "line": "#D9CFC2",
+      "card": "#FFFFFF"
+    }
+  },
+
+  "motion1": {
+    "eyebrow": "問題重新定義",
+    "headline": "【Motion 1 大標：待填】",
+    "columns": {
+      "left": "客戶以為",
+      "right": "證據顯示"
+    },
+    "rows": [
+      {
+        "key": "A",
+        "hypothesis": "【假設 A：待填】",
+        "evidence": {
+          "type": "stat",
+          "value": 0,
+          "decimals": 0,
+          "unit": "%",
+          "barPercent": 0,
+          "label": "【數據 1 說明：待填】",
+          "source": "來源：【待填】"
+        }
+      },
+      {
+        "key": "B",
+        "hypothesis": "【假設 B：待填】",
+        "evidence": {
+          "type": "stat",
+          "value": 0,
+          "decimals": 0,
+          "unit": "%",
+          "barPercent": 0,
+          "label": "【數據 2 說明：待填】",
+          "source": "來源：【待填】"
+        }
+      },
+      {
+        "key": "C",
+        "hypothesis": "【假設 C：待填】",
+        "evidence": {
+          "type": "quote",
+          "quote": "【訪談引句：待填】",
+          "speaker": "【受訪者描述：待填】",
+          "source": "來源：【待填】"
+        }
+      }
+    ],
+    "reframe": {
+      "eyebrow": "我們重新定義的問題",
+      "problemDefinition": "【Problem Definition 一句話：待填】"
+    },
+    "seconds": {
+      "hypotheses": 8,
+      "evidence": [6, 6, 5],
+      "strike": 7,
+      "reframe": 8
+    }
+  },
+
+  "motion2": {
+    "headline": "【Motion 2 大標：待填】",
+    "evidence": { "label": "Evidence", "note": "【待填】" },
+    "insight": { "label": "Insight", "text": "【一句話：待填】" },
+    "routeA": { "label": "【路線 A：待填】", "note": "【說明：待填】", "sketch": "bars" },
+    "routeB": { "label": "【路線 B：待填】", "note": "【說明：待填】", "sketch": "line" },
+    "goal": { "label": "3 個月目標", "text": "【Objective：待填】" },
+    "timeline": {
+      "headlineIn": 0,
+      "evidenceIn": 3.0,
+      "line1": 5.5,
+      "insightIn": 6.5,
+      "branch": 13.0,
+      "routeAIn": 13.6,
+      "routeBIn": 14.1,
+      "merge": 19.5,
+      "goalIn": 20.7,
+      "end": 30
+    }
+  }
+}
